@@ -1,5 +1,6 @@
 #include "mat4.h"
 #include <cmath>
+#include "mat3.h"
 
 Mat4::Mat4() {
     for (int i = 0; i < 16; i++) data[i] = 0.0f;
@@ -73,4 +74,13 @@ Mat4 Mat4::operator*(const Mat4& o) const {
     }
 
     return r;
+}
+
+Mat3 Mat4::toMat3() const {
+    float m3[9] = {
+        data[0], data[1], data[2],
+        data[4], data[5], data[6],
+        data[8], data[9], data[10]
+    };
+    return Mat3(m3);
 }

@@ -24,7 +24,11 @@ void Mesh::draw() {
 
     GLint posLoc = shader->getAttribLocation("position");
     glEnableVertexAttribArray(posLoc);
-    glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, sizeof(float)*6, 0);
+
+    GLint normLoc = shader->getAttribLocation("normal");
+    glEnableVertexAttribArray(normLoc);
+    glVertexAttribPointer(normLoc, 3, GL_FLOAT, GL_FALSE, sizeof(float)*6, (void*)(sizeof(float)*3));
 
     glDrawArrays(GL_TRIANGLES, 0, vertexCount / 3);
 

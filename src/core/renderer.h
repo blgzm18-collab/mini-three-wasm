@@ -4,6 +4,7 @@
 #include "../math/transform.h"
 #include "../math/mat4.h"
 #include "../math/vec3.h"
+#include "../core/camera.h"
 #include "mesh.h"
 
 
@@ -19,4 +20,6 @@ private:
 
     Shader* triangleShader;
     Mesh* triangleMesh;
+    Mesh* cubeMesh;
+    Camera camera;
 };

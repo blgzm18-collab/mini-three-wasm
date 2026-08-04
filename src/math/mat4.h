@@ -1,11 +1,13 @@
 #pragma once
 #include "vec3.h"
+#include "mat3.h"
 
 class Mat4 {
 public:
     float data[16];
 
     Mat4(); // identity
+    Mat3 toMat3() const;
 
     static Mat4 identity();
     static Mat4 translation(const Vec3& t);
