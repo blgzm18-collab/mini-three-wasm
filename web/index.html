@@ -8,11 +8,16 @@
 <script type="module">
   import createModule from './engine.js';
 
+  // Wait for WASM to finish loading
   createModule().then(Module => {
+    // Pull the class from the Module object
     const Renderer = Module.Renderer;
+
+    // Instantiate it safely
     const renderer = new Renderer(800, 600);
     renderer.clear(0.1, 0.1, 0.2);
   });
 </script>
+
 </body>
 </html>
