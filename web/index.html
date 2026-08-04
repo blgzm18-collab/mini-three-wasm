@@ -1,22 +1,97 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Mini Three WASM</title>
+  <meta charset="utf-8" />
+  <title>Mini Three WASM — Debug Preview</title>
+  <style>
+    html,body { height:100%; margin:0; background:#0b0b0d; color:#ddd; font-family:system-ui; }
+    #canvas { display:block; width:100vw; height:100vh; background:#111; }
+    #hud { position:fixed; left:8px; top:8px; background:rgba(0,0,0,0.5); color:#9cf; padding:6px 10px; border-radius:6px; font-size:13px; }
+    #log { position:fixed; left:8px; bottom:8px; right:8px; max-height:30vh; overflow:auto; font-size:12px; color:#eee; background:rgba(0,0,0,0.35); padding:8px; border-radius:6px; }
+  </style>
 </head>
 <body>
-<canvas id="canvas" width="800" height="600" style="border: 1px solid red;"></canvas>
+  <canvas id="canvas"></canvas>
+  <div id="hud">Mini Three WASM — initializing…</div>
+  <pre id="log"></pre>
 
 <script type="module">
-  import createModule from './engine.js';
-    createModule().then(Module => {
-    const Renderer = Module.Renderer;
-    const renderer = new Renderer(800, 600);
+import createModule from './engine.js';
 
-    renderer.clear(0.1, 0.1, 0.2);
-    renderer.drawTriangle();
+const canvas = document.getElementById('canvas');
+canvas.style.width = '100vw';
+canvas.style.height = '100vh';
+const dpr = window.devicePixelRatio || 1;
+canvas.width  = Math.floor(canvas.clientWidth * dpr);
+canvas.height = Math.floor(canvas.clientHeight * dpr);
+
+(async () => {
+  try {
+    const Module = await createModule({
+      canvas,
+      print: (s) => console.log('[wasm]', s),
+      printErr: (s) => console.error('[wasm-err]', s)
     });
 
+    console.log('Module keys:', Object.keys(Module));
+    console.log('Module.canvas === DOM canvas?', Module.canvas === canvas);
+    console.log('Module.GL present?', !!Module.GL);
+    console.log('Module.GL.currentContext?', !!(Module.GL && Module.GL.currentContext));
+
+    await createModule({ canvas }).then(Module => {
+      const ctx = Module.GL.createContext(Module.canvas, { majorVersion: 2 }); Module.GL.makeContextCurrent(ctx);
+
+      // ensure runtime and GL context exist
+      const renderer = new Module.Renderer(canvas.width, canvas.height);
+      renderer.init(); // <- make sure this is called after Module is ready
+      // now safe to call GL-using methods
+      renderer.clear(0.1,0.1,0.2);
+      renderer.drawTriangle();
+    });
+
+    // after `const Module = await createModule({ canvas })`
+    console.log('Module keys:', Object.keys(Module));
+    if (Module.GL && typeof Module.GL.createContext === 'function') {
+      const ctx = Module.GL.createContext(Module.canvas, { majorVersion: 2, minorVersion: 0 });
+      Module.GL.makeContextCurrent(ctx);
+      console.log('Module.GL.currentContext ->', !!Module.GL.currentContext);
+    } else {
+      console.warn('Module.GL is not present; skipping Module.GL.createContext. Module keys logged above.');
+      // Fallback diagnostic: check raw DOM WebGL
+      console.log('raw webgl2 available:', !!Module.canvas.getContext('webgl2'));
+    }
+
+
+    // If Emscripten didn't auto-create a context, create one explicitly
+    if (Module.GL && !Module.GL.currentContext) {
+      const ctx = Module.GL.createContext(Module.canvas, { majorVersion: 2, minorVersion: 0 });
+      console.log('createContext returned', !!ctx);
+      if (ctx) Module.GL.makeContextCurrent(ctx);
+      console.log('currentContext after createContext', !!Module.GL.currentContext);
+    }
+
+    if (!Module.GL || !Module.GL.currentContext) {
+      console.error('No GL context available. Aborting renderer init.');
+      return;
+    }
+
+    const Renderer = Module.Renderer;
+    const renderer = new Renderer(canvas.width, canvas.height);
+    if (typeof renderer.init === 'function') renderer.init();
+
+    renderer.clear(0.12, 0.14, 0.16);
+    renderer.drawTriangle();
+
+    function frame() {
+      renderer.renderFrame();
+      requestAnimationFrame(frame);compile
+    }
+    frame();
+
+  } catch (err) {
+    console.error('Error creating module:', err);
+  }
+})();
 </script>
 
 </body>
