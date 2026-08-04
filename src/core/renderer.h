@@ -1,5 +1,11 @@
 #pragma once
+#include <GLES2/gl2.h>
 #include "shader.h"
+#include "../math/transform.h"
+#include "../math/mat4.h"
+#include "../math/vec3.h"
+#include "mesh.h"
+
 
 class Renderer {
 public:
@@ -10,5 +16,7 @@ public:
 private:
     int width;
     int height;
+
     Shader* triangleShader;
+    Mesh* triangleMesh;
 };
