@@ -1,1 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Mini Three WASM</title>
+</head>
+<body>
+<script type="module">
+  import createModule from './engine.js';
 
+  createModule().then(Module => {
+    const Renderer = Module.Renderer;
+    const renderer = new Renderer(800, 600);
+    renderer.clear(0.1, 0.1, 0.2);
+  });
+</script>
+</body>
+</html>
